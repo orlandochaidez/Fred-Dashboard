@@ -19,6 +19,8 @@
   .starred { color: #fbbf24; }
   input, button, select { -webkit-tap-highlight-color: transparent; }
   .unit-btn.active { background: #3b82f6; color: white; }
+  #chartContainer { height: 100%; min-height: 300px; touch-action: none; }
+  .range-btn, .unit-btn { touch-action: manipulation; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -113,7 +115,7 @@
     <button class="unit-btn px-3 py-1 rounded-full bg-slate-800" data-units="pch">% Chg</button>
     <button class="unit-btn px-3 py-1 rounded-full bg-slate-800" data-units="chg">Change</button>
   </div>
-  <div class="flex-1 relative">
+  <div class="flex-1 relative min-h-[300px]">
     <div id="chartContainer" class="w-full h-full"></div>
   </div>
   <div class="p-2 border-t border-slate-700 bg-slate-900 flex justify-center gap-2 overflow-x-auto">
@@ -173,7 +175,6 @@ let compareMode = false;
 let selectedForCompare = new Set();
 let darkMode = localStorage.getItem('fred_dark') !== 'false';
 
-// Your Cloudflare Worker proxy
 const PROXY = 'https://fred-proxy.orlandochaidez.workers.dev/?url=';
 
 function applyTheme() {
@@ -445,14 +446,17 @@ async function openChart(items, units = null) {
   const container = document.getElementById('chartContainer');
   container.innerHTML = '';
 
+  // Small delay so mobile layout finishes
+  await new Promise(r => setTimeout(r, 50));
+
   currentChart = LightweightCharts.createChart(container, {
     layout: { background: { color: darkMode ? '#0f172a' : '#f8fafc' }, textColor: darkMode ? '#94a3b8' : '#475569' },
     grid: { vertLines: { color: darkMode ? '#1e293b' : '#e2e8f0' }, horzLines: { color: darkMode ? '#1e293b' : '#e2e8f0' } },
     crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
     rightPriceScale: { borderColor: darkMode ? '#334155' : '#cbd5e1' },
     timeScale: { borderColor: darkMode ? '#334155' : '#cbd5e1', timeVisible: true },
-    width: container.clientWidth,
-    height: container.clientHeight,
+    width: container.clientWidth || window.innerWidth,
+    height: container.clientHeight || 400,
   });
 
   try {

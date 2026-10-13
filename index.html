@@ -260,20 +260,18 @@ document.getElementById('newListBtn').onclick = () => {
 
 async function fetchObservations(seriesId, units = 'lin', limit = 30) {
   if (!apiKey) throw new Error('No key');
-  const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodeURIComponent(seriesId)}&api_key=${apiKey}&file_type=json&units=${units}&sort_order=desc&limit=${limit}`;
-  const res = await fetch(PROXY + encodeURIComponent(target));
-  if (!res.ok) throw new Error('API');
+  const url = `https://fred-proxy.orlandochaidez.workers.dev/?series_id=${encodeURIComponent(seriesId)}&api_key=${apiKey}&units=${units}&limit=${limit}&sort_order=desc`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Status ' + res.status);
   const data = await res.json();
   return (data.observations || []).filter(o => o.value !== '.').reverse();
 }
+
 async function fetchFullHistory(seriesId, units = 'lin') {
   if (!apiKey) throw new Error('No key');
-  const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodeURIComponent(seriesId)}&api_key=${apiKey}&file_type=json&units=${units}&sort_order=asc`;
-  const res = await fetch(PROXY + encodeURIComponent(target));
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error('Status ' + res.status + ' ' + text.slice(0, 80));
-  }
+  const url = `https://fred-proxy.orlandochaidez.workers.dev/?series_id=${encodeURIComponent(seriesId)}&api_key=${apiKey}&units=${units}&sort_order=asc`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Status ' + res.status);
   const data = await res.json();
   return (data.observations || []).filter(o => o.value !== '.').map(o => ({ time: o.date, value: parseFloat(o.value) }));
 }

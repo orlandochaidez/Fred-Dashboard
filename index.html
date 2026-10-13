@@ -19,7 +19,7 @@
   .starred { color: #fbbf24; }
   input, button, select { -webkit-tap-highlight-color: transparent; }
   .unit-btn.active { background: #3b82f6; color: white; }
-  #chartContainer { height: 100%; min-height: 300px; touch-action: none; }
+  #chartContainer { height: 420px; width: 100%; touch-action: none; }
   .range-btn, .unit-btn { touch-action: manipulation; }
 </style>
 </head>
@@ -115,8 +115,8 @@
     <button class="unit-btn px-3 py-1 rounded-full bg-slate-800" data-units="pch">% Chg</button>
     <button class="unit-btn px-3 py-1 rounded-full bg-slate-800" data-units="chg">Change</button>
   </div>
-  <div class="flex-1 relative min-h-[300px]">
-    <div id="chartContainer" class="w-full h-full"></div>
+  <div class="flex-1 relative">
+    <div id="chartContainer"></div>
   </div>
   <div class="p-2 border-t border-slate-700 bg-slate-900 flex justify-center gap-2 overflow-x-auto">
     <button class="range-btn px-3 py-1.5 rounded-full text-xs bg-slate-800" data-range="1y">1Y</button>
@@ -445,9 +445,9 @@ async function openChart(items, units = null) {
   if (currentChart) currentChart.remove();
   const container = document.getElementById('chartContainer');
   container.innerHTML = '';
+  container.style.height = '420px';
 
-  // Small delay so mobile layout finishes
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise(r => setTimeout(r, 100));
 
   currentChart = LightweightCharts.createChart(container, {
     layout: { background: { color: darkMode ? '#0f172a' : '#f8fafc' }, textColor: darkMode ? '#94a3b8' : '#475569' },
@@ -456,7 +456,7 @@ async function openChart(items, units = null) {
     rightPriceScale: { borderColor: darkMode ? '#334155' : '#cbd5e1' },
     timeScale: { borderColor: darkMode ? '#334155' : '#cbd5e1', timeVisible: true },
     width: container.clientWidth || window.innerWidth,
-    height: container.clientHeight || 400,
+    height: 420,
   });
 
   try {
@@ -472,12 +472,8 @@ async function openChart(items, units = null) {
     currentChart.timeScale().fitContent();
     setRange('5y');
   } catch (e) {
-    container.innerHTML = '<div class="flex items-center justify-center h-full text-red-400">Failed to load chart</div>';
+    container.innerHTML = '<div class="flex items-center justify-center h-full text-red-400 p-4 text-center">Failed to load chart<br><span class="text-xs">' + e.message + '</span></div>';
   }
-
-  new ResizeObserver(() => {
-    if (currentChart) currentChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
-  }).observe(container);
 }
 
 function setRange(range) {
@@ -497,7 +493,14 @@ function setRange(range) {
     btn.classList.toggle('bg-slate-800', btn.dataset.range !== range);
   });
 }
-document.querySelectorAll('.range-btn').forEach(btn => btn.onclick = () => setRange(btn.dataset.range));
+
+// Attach both click and touch for range buttons
+document.querySelectorAll('.range-btn').forEach(btn => {
+  const handler = () => setRange(btn.dataset.range);
+  btn.onclick = handler;
+  btn.ontouchend = (e) => { e.preventDefault(); handler(); };
+});
+
 document.querySelectorAll('.unit-btn').forEach(btn => {
   btn.onclick = () => {
     currentUnits = btn.dataset.units;

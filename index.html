@@ -22,48 +22,25 @@
   #chartContainer { height: 420px; width: 100%; touch-action: none; }
   .range-btn, .unit-btn { touch-action: manipulation; }
 
-  /* Dark (default, Robinhood-like) */
-  body.dark {
-    background: #0a0f0d;
-    color: #e8e8e8;
-  }
-  body.dark header {
-    background: #0d1411;
-    border-color: #1a2420;
-  }
+  body.dark { background: #0a0f0d; color: #e8e8e8; }
+  body.dark header { background: #0d1411; border-color: #1a2420; }
   body.dark h1 { color: #00c805; }
   body.dark .bg-slate-900, body.dark .bg-slate-800, body.dark .bg-slate-800\/80, body.dark .bg-slate-800\/60 {
-    background: #111916 !important;
-    border-color: #1e2a24 !important;
+    background: #111916 !important; border-color: #1e2a24 !important;
   }
   body.dark .text-slate-400, body.dark .text-slate-500 { color: #6b7280 !important; }
   body.dark .tab-active { background: #00c805; color: #000; }
-  body.dark .range-btn.bg-blue-600, body.dark .unit-btn.active {
-    background: #00c805 !important;
-    color: #000 !important;
-  }
+  body.dark .range-btn.bg-blue-600, body.dark .unit-btn.active { background: #00c805 !important; color: #000 !important; }
 
-  /* Light */
-  body.light {
-    background: #f7f8f7;
-    color: #1a1a1a;
-  }
-  body.light header {
-    background: #ffffff;
-    border-color: #e5e7eb;
-  }
+  body.light { background: #f7f8f7; color: #1a1a1a; }
+  body.light header { background: #ffffff; border-color: #e5e7eb; }
   body.light h1 { color: #00a000; }
   body.light .bg-slate-900, body.light .bg-slate-800, body.light .bg-slate-800\/80, body.light .bg-slate-800\/60 {
-    background: #ffffff !important;
-    border-color: #e5e7eb !important;
-    color: #1a1a1a;
+    background: #ffffff !important; border-color: #e5e7eb !important; color: #1a1a1a;
   }
   body.light .text-slate-400, body.light .text-slate-500 { color: #6b7280 !important; }
   body.light .tab-active { background: #00c805; color: #000; }
-  body.light .range-btn.bg-blue-600, body.light .unit-btn.active {
-    background: #00c805 !important;
-    color: #000 !important;
-  }
+  body.light .range-btn.bg-blue-600, body.light .unit-btn.active { background: #00c805 !important; color: #000 !important; }
 </style>
 </head>
 <body class="dark min-h-screen">
@@ -95,22 +72,17 @@
   <div id="tab-popular" class="tab-content">
     <div class="mb-4">
       <h2 class="text-xl font-semibold mb-1">Popular Rates</h2>
-      <p class="text-slate-400 text-sm">Tap for chart • long-press or use Compare mode to multi-select</p>
+      <p class="text-slate-400 text-sm">Tap for chart</p>
     </div>
     <div id="popularGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
   </div>
-
   <div id="tab-watchlists" class="tab-content hidden">
     <div class="mb-4 flex justify-between items-center">
-      <div>
-        <h2 class="text-xl font-semibold">Watchlists</h2>
-        <p class="text-slate-400 text-sm">Named lists of series</p>
-      </div>
+      <div><h2 class="text-xl font-semibold">Watchlists</h2><p class="text-slate-400 text-sm">Named lists of series</p></div>
       <button id="newListBtn" class="text-xs bg-[#00c805] text-black px-3 py-1.5 rounded-lg font-medium">+ New list</button>
     </div>
     <div id="watchlistsContainer"></div>
   </div>
-
   <div id="tab-search" class="tab-content hidden">
     <div class="mb-4">
       <h2 class="text-xl font-semibold mb-2">Search FRED</h2>
@@ -122,7 +94,6 @@
     <div id="searchResults" class="grid grid-cols-1 gap-3"></div>
     <p id="searchHint" class="text-slate-500 text-center py-10">Search any economic series</p>
   </div>
-
   <div id="tab-calendar" class="tab-content hidden">
     <div class="mb-4">
       <h2 class="text-xl font-semibold mb-1">Release Calendar</h2>
@@ -158,15 +129,14 @@
     <button class="unit-btn px-3 py-1 rounded-full bg-slate-800" data-units="pch">% Chg</button>
     <button class="unit-btn px-3 py-1 rounded-full bg-slate-800" data-units="chg">Change</button>
   </div>
-  <div class="flex-1 relative">
-    <div id="chartContainer"></div>
-  </div>
-   <div class="p-2 border-t border-slate-700 bg-slate-900 flex justify-center gap-1 overflow-x-auto text-xs">
+  <div class="flex-1 relative"><div id="chartContainer"></div></div>
+  <div class="p-2 border-t border-slate-700 bg-slate-900 flex justify-center gap-1 overflow-x-auto text-xs">
     <button class="range-btn px-2.5 py-1.5 rounded-full bg-slate-800" data-range="6m">6M</button>
     <button class="range-btn px-2.5 py-1.5 rounded-full bg-slate-800" data-range="1y">1Y</button>
     <button class="range-btn px-2.5 py-1.5 rounded-full bg-blue-600" data-range="5y">5Y</button>
     <button class="range-btn px-2.5 py-1.5 rounded-full bg-slate-800" data-range="10y">10Y</button>
     <button class="range-btn px-2.5 py-1.5 rounded-full bg-slate-800" data-range="max">Max</button>
+  </div>
 </div>
 
 <div id="keyModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
@@ -206,18 +176,12 @@ const POPULAR = [
   { id: 'PCEPI', name: 'PCE Inflation (YoY)', units: 'pc1', freq: 'Monthly' },
   { id: 'ICSA', name: 'Initial Claims', units: 'lin', freq: 'Weekly' },
 ];
-
 const COLORS = ['#00c805','#22c55e','#f59e0b','#ff5000','#a855f7','#06b6d4','#ec4899','#84cc16'];
-
 let apiKey = localStorage.getItem('fred_api_key') || '';
 let watchlists = JSON.parse(localStorage.getItem('fred_watchlists') || '{"Favorites":[]}');
-let currentChart = null;
-let currentItems = [];
-let currentUnits = 'lin';
-let compareMode = false;
-let selectedForCompare = new Set();
+let currentChart = null, currentItems = [], currentUnits = 'lin';
+let compareMode = false, selectedForCompare = new Set();
 let darkMode = localStorage.getItem('fred_dark') !== 'false';
-
 const PROXY = 'https://fred-proxy.orlandochaidez.workers.dev/';
 
 function applyTheme() {
@@ -267,12 +231,7 @@ document.getElementById('viewCompare').onclick = () => {
   selectedForCompare.forEach(id => {
     const pop = POPULAR.find(p => p.id === id);
     if (pop) items.push(pop);
-    else {
-      for (const list of Object.values(watchlists)) {
-        const found = list.find(i => i.id === id);
-        if (found) { items.push(found); break; }
-      }
-    }
+    else { for (const list of Object.values(watchlists)) { const found = list.find(i => i.id === id); if (found) { items.push(found); break; } } }
   });
   if (items.length) openChart(items);
 };
@@ -287,13 +246,8 @@ function renderWatchlists() {
     section.innerHTML = `<div class="flex justify-between items-center mb-2"><h3 class="font-semibold">${name}</h3><button class="text-xs text-red-400 del-list" data-name="${name}">Delete</button></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 list-grid" data-name="${name}"></div>`;
     cont.appendChild(section);
     const grid = section.querySelector('.list-grid');
-    watchlists[name].forEach(item => {
-      createCard(item, grid);
-      populateCard(item);
-    });
-    section.querySelector('.del-list').onclick = () => {
-      if (confirm('Delete list "' + name + '"?')) { delete watchlists[name]; saveWatchlists(); renderWatchlists(); }
-    };
+    watchlists[name].forEach(item => { createCard(item, grid); populateCard(item); });
+    section.querySelector('.del-list').onclick = () => { if (confirm('Delete list "' + name + '"?')) { delete watchlists[name]; saveWatchlists(); renderWatchlists(); } };
   });
 }
 document.getElementById('newListBtn').onclick = () => {
@@ -342,11 +296,7 @@ function makeSparkline(points) {
   const min = Math.min(...values), max = Math.max(...values);
   const range = max - min || 1;
   const w = 140, h = 32;
-  const coords = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * w;
-    const y = h - ((v - min) / range) * (h - 6) - 3;
-    return `${x},${y}`;
-  }).join(' ');
+  const coords = values.map((v, i) => { const x = (i / (values.length - 1)) * w; const y = h - ((v - min) / range) * (h - 6) - 3; return `${x},${y}`; }).join(' ');
   const color = values[values.length - 1] >= values[0] ? '#00c805' : '#ff5000';
   return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline fill="none" stroke="${color}" stroke-width="1.8" points="${coords}"/></svg>`;
 }
@@ -355,50 +305,32 @@ function createCard(item, container) {
   const card = document.createElement('div');
   card.className = 'card bg-slate-800/80 rounded-2xl p-4 border border-slate-700 cursor-pointer relative';
   card.dataset.id = item.id;
-  card.innerHTML = `
-    <div class="flex justify-between items-start">
-      <div class="text-sm text-slate-400 pr-8">${item.name}</div>
-      <button class="star-btn text-lg absolute top-3 right-3" data-id="${item.id}">☆</button>
-    </div>
-    <div class="text-2xl font-semibold mt-1" id="val-${item.id}">...</div>
-    <div class="text-xs mt-0.5" id="chg-${item.id}">Loading</div>
-    <div id="spark-${item.id}" class="mt-1"></div>
-    <div class="text-[10px] text-slate-500 mt-1" id="meta-${item.id}"></div>
-  `;
+  card.innerHTML = `<div class="flex justify-between items-start"><div class="text-sm text-slate-400 pr-8">${item.name}</div><button class="star-btn text-lg absolute top-3 right-3" data-id="${item.id}">☆</button></div><div class="text-2xl font-semibold mt-1" id="val-${item.id}">...</div><div class="text-xs mt-0.5" id="chg-${item.id}">Loading</div><div id="spark-${item.id}" class="mt-1"></div><div class="text-[10px] text-slate-500 mt-1" id="meta-${item.id}"></div>`;
   card.onclick = (e) => {
     if (e.target.closest('.star-btn')) return;
     if (compareMode) {
-      if (selectedForCompare.has(item.id)) selectedForCompare.delete(item.id);
-      else selectedForCompare.add(item.id);
+      if (selectedForCompare.has(item.id)) selectedForCompare.delete(item.id); else selectedForCompare.add(item.id);
       updateCompareBar();
-    } else {
-      openChart([item]);
-    }
+    } else openChart([item]);
   };
   card.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFav(item); };
   container.appendChild(card);
   return card;
 }
-
 function toggleFav(item) {
   const favs = watchlists['Favorites'] || [];
   const idx = favs.findIndex(f => f.id === item.id);
-  if (idx >= 0) favs.splice(idx, 1);
-  else favs.push(item);
+  if (idx >= 0) favs.splice(idx, 1); else favs.push(item);
   watchlists['Favorites'] = favs;
-  saveWatchlists();
-  updateStars();
+  saveWatchlists(); updateStars();
 }
-
 function updateStars() {
   document.querySelectorAll('.star-btn').forEach(btn => {
-    const id = btn.dataset.id;
-    const isF = (watchlists['Favorites'] || []).some(f => f.id === id);
+    const isF = (watchlists['Favorites'] || []).some(f => f.id === btn.dataset.id);
     btn.textContent = isF ? '★' : '☆';
     btn.classList.toggle('starred', isF);
   });
 }
-
 async function populateCard(item) {
   try {
     const obs = await fetchObservations(item.id, item.units || 'lin', 24);
@@ -421,22 +353,15 @@ async function populateCard(item) {
       }
       if (sparkEl) sparkEl.innerHTML = makeSparkline(obs);
     }
-    if (meta && metaEl) {
-      metaEl.textContent = `Updated: ${meta.last_updated?.split(' ')[0] || '—'}`;
-    }
+    if (meta && metaEl) metaEl.textContent = `Updated: ${meta.last_updated?.split(' ')[0] || '—'}`;
   } catch (e) {}
 }
-
 async function loadPopular() {
   const grid = document.getElementById('popularGrid');
   grid.innerHTML = '';
-  for (const item of POPULAR) {
-    createCard(item, grid);
-    populateCard(item);
-  }
+  for (const item of POPULAR) { createCard(item, grid); populateCard(item); }
   updateStars();
 }
-
 async function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q || !apiKey) return;
@@ -446,25 +371,17 @@ async function doSearch() {
   try {
     const series = await searchSeries(q);
     results.innerHTML = '';
-    series.forEach(s => {
-      const item = { id: s.id, name: s.title, units: 'lin', freq: s.frequency };
-      createCard(item, results);
-      populateCard(item);
-    });
+    series.forEach(s => { const item = { id: s.id, name: s.title, units: 'lin', freq: s.frequency }; createCard(item, results); populateCard(item); });
   } catch (e) { results.innerHTML = '<div class="text-red-400 text-center">Search failed</div>'; }
 }
 document.getElementById('searchBtn').onclick = doSearch;
 document.getElementById('searchInput').onkeydown = e => { if (e.key === 'Enter') doSearch(); };
-
 async function loadCalendar() {
   const list = document.getElementById('calendarList');
   list.innerHTML = '<div class="text-slate-400">Loading...</div>';
   const items = [];
   for (const p of POPULAR.slice(0, 8)) {
-    try {
-      const meta = await fetchSeriesMeta(p.id);
-      if (meta) items.push({ ...p, last: meta.last_updated, end: meta.observation_end, freq: meta.frequency });
-    } catch (e) {}
+    try { const meta = await fetchSeriesMeta(p.id); if (meta) items.push({ ...p, last: meta.last_updated, end: meta.observation_end, freq: meta.frequency }); } catch (e) {}
   }
   list.innerHTML = '';
   items.sort((a, b) => (b.last || '').localeCompare(a.last || ''));
@@ -475,7 +392,6 @@ async function loadCalendar() {
     list.appendChild(div);
   });
 }
-
 async function openChart(items, units = null) {
   currentItems = items;
   currentUnits = units || items[0].units || 'lin';
@@ -484,16 +400,12 @@ async function openChart(items, units = null) {
   document.getElementById('chartTitle').textContent = items.length === 1 ? items[0].name : items.map(i => i.name.split(' ')[0]).join(' + ');
   document.getElementById('chartSubtitle').textContent = items.map(i => i.id).join(', ');
   updateStars();
-
   document.querySelectorAll('.unit-btn').forEach(b => b.classList.toggle('active', b.dataset.units === currentUnits));
-
   if (currentChart) currentChart.remove();
   const container = document.getElementById('chartContainer');
   container.innerHTML = '';
   container.style.height = '420px';
-
   await new Promise(r => setTimeout(r, 100));
-
   currentChart = LightweightCharts.createChart(container, {
     layout: { background: { color: darkMode ? '#0a0f0d' : '#ffffff' }, textColor: darkMode ? '#a1a1aa' : '#525252' },
     grid: { vertLines: { color: darkMode ? '#1a2420' : '#f0f0f0' }, horzLines: { color: darkMode ? '#1a2420' : '#f0f0f0' } },
@@ -503,73 +415,18 @@ async function openChart(items, units = null) {
     width: container.clientWidth || window.innerWidth,
     height: 420,
   });
-
   try {
     for (let i = 0; i < items.length; i++) {
       const data = await fetchFullHistory(items[i].id, currentUnits);
-      const series = currentChart.addLineSeries({
-        color: COLORS[i % COLORS.length],
-        lineWidth: 2,
-        title: items[i].name,
-      });
+      const series = currentChart.addLineSeries({ color: COLORS[i % COLORS.length], lineWidth: 2, title: items[i].name });
       series.setData(data);
     }
     currentChart.timeScale().fitContent();
     setRange('5y');
-    
-
-// Two-finger percentage difference (Stocks-style)
-let touchDiffEl = document.getElementById('touchDiff');
-if (!touchDiffEl) {
-  touchDiffEl = document.createElement('div');
-  touchDiffEl.id = 'touchDiff';
-  touchDiffEl.className = 'absolute top-2 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-3 py-1.5 rounded-full font-medium pointer-events-none z-10 hidden';
-  document.getElementById('chartView').appendChild(touchDiffEl);
-}
-
-const container = document.getElementById('chartContainer');
-container.addEventListener('touchstart', handleTwoFinger, { passive: false });
-container.addEventListener('touchmove', handleTwoFinger, { passive: false });
-container.addEventListener('touchend', () => touchDiffEl.classList.add('hidden'), { passive: true });
-
-function handleTwoFinger(e) {
-  if (e.touches.length !== 2 || !currentChart) {
-    touchDiffEl.classList.add('hidden');
-    return;
-  }
-  e.preventDefault();
-
-  const rect = container.getBoundingClientRect();
-  const t1 = e.touches[0];
-  const t2 = e.touches[1];
-
-  const x1 = t1.clientX - rect.left;
-  const x2 = t2.clientX - rect.left;
-
-  const time1 = currentChart.timeScale().coordinateToTime(x1);
-  const time2 = currentChart.timeScale().coordinateToTime(x2);
-
-  if (!time1 || !time2) return;
-
-  // Get the main series (first one)
-  const series = currentChart.series()[0];
-  if (!series) return;
-
-  const price1 = series.coordinateToPrice(t1.clientY - rect.top);
-  const price2 = series.coordinateToPrice(t2.clientY - rect.top);
-
-  if (price1 == null || price2 == null) return;
-
-  const pct = ((price2 - price1) / Math.abs(price1)) * 100;
-  const sign = pct >= 0 ? '+' : '';
-  touchDiffEl.textContent = `${sign}${pct.toFixed(2)}%`;
-  touchDiffEl.classList.remove('hidden');
-}
   } catch (e) {
     container.innerHTML = '<div class="flex items-center justify-center h-full text-red-400 p-4 text-center">Failed to load chart<br><span class="text-xs">' + e.message + '</span></div>';
   }
 }
-
 function setRange(range) {
   if (!currentChart) return;
   const now = new Date();
@@ -601,13 +458,11 @@ document.querySelectorAll('.unit-btn').forEach(btn => {
     if (currentItems.length) openChart(currentItems, currentUnits);
   };
 });
-
 document.getElementById('backBtn').onclick = () => {
   document.getElementById('chartView').classList.add('hidden');
   document.getElementById('homeView').classList.remove('hidden');
   if (currentChart) { currentChart.remove(); currentChart = null; }
 };
-
 document.getElementById('chartStar').onclick = () => { if (currentItems[0]) toggleFav(currentItems[0]); };
 document.getElementById('addToListBtn').onclick = () => {
   if (!currentItems[0]) return;
@@ -634,7 +489,6 @@ document.getElementById('confirmAddList').onclick = () => {
   document.getElementById('newListName').value = '';
   alert('Added to ' + name);
 };
-
 if (apiKey) loadPopular();
 </script>
 </body>

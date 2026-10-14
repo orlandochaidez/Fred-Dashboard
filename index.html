@@ -52,13 +52,13 @@
   </div>
   <div class="flex gap-2">
     <button id="compareToggle" class="text-xs px-2 py-1 rounded-lg bg-slate-800 text-slate-300">Compare</button>
-    <button id="themeToggle" class="text-slate-400 hover:text-white text-sm px-2 py-1 rounded-lg bg-slate-800">🌙</button>
+    <button id="themeToggle" class="text-slate-400 hover:text-white text-sm px-2 py-1 rounded-lg bg-slate-800">ð</button>
     <button id="settingsBtn" class="text-slate-400 hover:text-white text-sm px-3 py-1 rounded-lg bg-slate-800">API Key</button>
   </div>
 </header>
 
 <div class="bg-slate-800/50 text-xs text-slate-400 px-4 py-2 text-center border-b border-slate-700">
-  Unofficial client. Not affiliated with or endorsed by the Federal Reserve Bank of St. Louis. Data from FRED®.
+  Unofficial client. Not affiliated with or endorsed by the Federal Reserve Bank of St. Louis. Data from FREDÂ®.
 </div>
 
 <div class="flex border-b border-slate-700 bg-slate-900 sticky top-[57px] z-40 overflow-x-auto">
@@ -113,13 +113,13 @@
 
 <div id="chartView" class="hidden fixed inset-0 bg-slate-950 z-50 flex flex-col">
   <div class="flex items-center justify-between p-3 border-b border-slate-700 bg-slate-900">
-    <button id="backBtn" class="text-[#00c805] font-medium text-sm">← Back</button>
+    <button id="backBtn" class="text-[#00c805] font-medium text-sm">â Back</button>
     <div class="text-center flex-1 min-w-0">
       <div id="chartTitle" class="font-semibold truncate text-sm"></div>
       <div id="chartSubtitle" class="text-xs text-slate-400 truncate"></div>
     </div>
     <div class="flex gap-1">
-      <button id="chartStar" class="text-xl">☆</button>
+      <button id="chartStar" class="text-xl">â</button>
       <button id="addToListBtn" class="text-xs px-2 py-1 bg-slate-800 rounded">+ List</button>
     </div>
   </div>
@@ -129,6 +129,7 @@
     <button class="unit-btn px-3 py-1 rounded-full bg-slate-800" data-units="pch">% Chg</button>
     <button class="unit-btn px-3 py-1 rounded-full bg-slate-800" data-units="chg">Change</button>
   </div>
+  <div class="text-[10px] text-slate-500 text-center py-1 bg-slate-900 border-b border-slate-700">📏 Two-finger tap the chart for % change · Shift+click two points on desktop</div>
   <div class="flex-1 relative"><div id="chartContainer"></div></div>
   <div class="p-2 border-t border-slate-700 bg-slate-900 flex justify-center gap-1 overflow-x-auto text-xs">
     <button class="range-btn px-2.5 py-1.5 rounded-full bg-slate-800" data-range="6m">6M</button>
@@ -180,13 +181,14 @@ const COLORS = ['#00c805','#22c55e','#f59e0b','#ff5000','#a855f7','#06b6d4','#ec
 let apiKey = localStorage.getItem('fred_api_key') || '';
 let watchlists = JSON.parse(localStorage.getItem('fred_watchlists') || '{"Favorites":[]}');
 let currentChart = null, currentItems = [], currentUnits = 'lin';
+let chartSeriesData = []; // [{name, data:[{time,value}], series}] for the measure tool
 let compareMode = false, selectedForCompare = new Set();
 let darkMode = localStorage.getItem('fred_dark') !== 'false';
 const PROXY = 'https://fred-proxy.orlandochaidez.workers.dev/';
 
 function applyTheme() {
   document.body.className = darkMode ? 'dark min-h-screen' : 'light min-h-screen';
-  document.getElementById('themeToggle').textContent = darkMode ? '🌙' : '☀️';
+  document.getElementById('themeToggle').textContent = darkMode ? 'ð' : 'âï¸';
 }
 applyTheme();
 document.getElementById('themeToggle').onclick = () => { darkMode = !darkMode; localStorage.setItem('fred_dark', darkMode); applyTheme(); };
@@ -287,7 +289,7 @@ async function fetchSeriesMeta(seriesId) {
 }
 
 function formatValue(val) {
-  if (val == null || isNaN(val)) return '—';
+  if (val == null || isNaN(val)) return 'â';
   return (Math.abs(val) < 100 ? val.toFixed(2) + '%' : val.toLocaleString(undefined, { maximumFractionDigits: 1 }));
 }
 function makeSparkline(points) {
@@ -305,7 +307,7 @@ function createCard(item, container) {
   const card = document.createElement('div');
   card.className = 'card bg-slate-800/80 rounded-2xl p-4 border border-slate-700 cursor-pointer relative';
   card.dataset.id = item.id;
-  card.innerHTML = `<div class="flex justify-between items-start"><div class="text-sm text-slate-400 pr-8">${item.name}</div><button class="star-btn text-lg absolute top-3 right-3" data-id="${item.id}">☆</button></div><div class="text-2xl font-semibold mt-1" id="val-${item.id}">...</div><div class="text-xs mt-0.5" id="chg-${item.id}">Loading</div><div id="spark-${item.id}" class="mt-1"></div><div class="text-[10px] text-slate-500 mt-1" id="meta-${item.id}"></div>`;
+  card.innerHTML = `<div class="flex justify-between items-start"><div class="text-sm text-slate-400 pr-8">${item.name}</div><button class="star-btn text-lg absolute top-3 right-3" data-id="${item.id}">â</button></div><div class="text-2xl font-semibold mt-1" id="val-${item.id}">...</div><div class="text-xs mt-0.5" id="chg-${item.id}">Loading</div><div id="spark-${item.id}" class="mt-1"></div><div class="text-[10px] text-slate-500 mt-1" id="meta-${item.id}"></div>`;
   card.onclick = (e) => {
     if (e.target.closest('.star-btn')) return;
     if (compareMode) {
@@ -327,7 +329,7 @@ function toggleFav(item) {
 function updateStars() {
   document.querySelectorAll('.star-btn').forEach(btn => {
     const isF = (watchlists['Favorites'] || []).some(f => f.id === btn.dataset.id);
-    btn.textContent = isF ? '★' : '☆';
+    btn.textContent = isF ? 'â' : 'â';
     btn.classList.toggle('starred', isF);
   });
 }
@@ -348,12 +350,12 @@ async function populateCard(item) {
         const prev = parseFloat(obs[obs.length - 2].value);
         const diff = v - prev;
         const sign = diff > 0 ? '+' : '';
-        chgEl.textContent = `${sign}${diff.toFixed(2)} • ${latest.date}`;
+        chgEl.textContent = `${sign}${diff.toFixed(2)} â¢ ${latest.date}`;
         chgEl.className = 'text-xs mt-0.5 ' + (diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral');
       }
       if (sparkEl) sparkEl.innerHTML = makeSparkline(obs);
     }
-    if (meta && metaEl) metaEl.textContent = `Updated: ${meta.last_updated?.split(' ')[0] || '—'}`;
+    if (meta && metaEl) metaEl.textContent = `Updated: ${meta.last_updated?.split(' ')[0] || 'â'}`;
   } catch (e) {}
 }
 async function loadPopular() {
@@ -388,7 +390,7 @@ async function loadCalendar() {
   items.forEach(it => {
     const div = document.createElement('div');
     div.className = 'bg-slate-800/60 rounded-xl p-3 border border-slate-700 text-sm';
-    div.innerHTML = `<div class="font-medium">${it.name}</div><div class="text-xs text-slate-400 mt-1">Last updated: ${it.last?.split('T')[0] || it.last || '—'}<br>Observation end: ${it.end || '—'} • ${it.freq}</div>`;
+    div.innerHTML = `<div class="font-medium">${it.name}</div><div class="text-xs text-slate-400 mt-1">Last updated: ${it.last?.split('T')[0] || it.last || 'â'}<br>Observation end: ${it.end || 'â'} â¢ ${it.freq}</div>`;
     list.appendChild(div);
   });
 }
@@ -405,6 +407,7 @@ async function openChart(items, units = null) {
   const container = document.getElementById('chartContainer');
   container.innerHTML = '';
   container.style.height = '420px';
+  measureEls = null; // overlay divs were wiped with innerHTML; recreate on next use
   await new Promise(r => setTimeout(r, 100));
   currentChart = LightweightCharts.createChart(container, {
     layout: { background: { color: darkMode ? '#0a0f0d' : '#ffffff' }, textColor: darkMode ? '#a1a1aa' : '#525252' },
@@ -416,10 +419,12 @@ async function openChart(items, units = null) {
     height: 420,
   });
   try {
+    chartSeriesData = [];
     for (let i = 0; i < items.length; i++) {
       const data = await fetchFullHistory(items[i].id, currentUnits);
       const series = currentChart.addLineSeries({ color: COLORS[i % COLORS.length], lineWidth: 2, title: items[i].name });
       series.setData(data);
+      chartSeriesData.push({ name: items[i].name, data, series });
     }
     currentChart.timeScale().fitContent();
     setRange('5y');
@@ -461,6 +466,9 @@ document.querySelectorAll('.unit-btn').forEach(btn => {
 document.getElementById('backBtn').onclick = () => {
   document.getElementById('chartView').classList.add('hidden');
   document.getElementById('homeView').classList.remove('hidden');
+  hideMeasure();
+  chartSeriesData = [];
+  shiftAnchor = null;
   if (currentChart) { currentChart.remove(); currentChart = null; }
 };
 document.getElementById('chartStar').onclick = () => { if (currentItems[0]) toggleFav(currentItems[0]); };
@@ -489,6 +497,191 @@ document.getElementById('confirmAddList').onclick = () => {
   document.getElementById('newListName').value = '';
   alert('Added to ' + name);
 };
+// ---- Measure tool: two-finger tap (touch) / Shift+click (mouse) % change ----
+let measureEls = null, measureTimer = null, touchGesture = null, shiftAnchor = null;
+
+function ensureMeasureOverlay() {
+  if (measureEls) return measureEls;
+  const container = document.getElementById('chartContainer');
+  container.style.position = 'relative';
+  const mk = () => {
+    const d = document.createElement('div');
+    d.style.position = 'absolute';
+    d.style.pointerEvents = 'none';
+    d.style.display = 'none';
+    d.style.zIndex = '5';
+    container.appendChild(d);
+    return d;
+  };
+  measureEls = { shade: mk(), lineA: mk(), lineB: mk(), pill: mk() };
+  measureEls.shade.style.top = '0'; measureEls.shade.style.bottom = '0';
+  measureEls.lineA.style.top = '0'; measureEls.lineA.style.bottom = '0'; measureEls.lineA.style.width = '1px';
+  measureEls.lineB.style.top = '0'; measureEls.lineB.style.bottom = '0'; measureEls.lineB.style.width = '1px';
+  return measureEls;
+}
+
+function nearestPoint(data, ts) {
+  const t = i => Date.parse(data[i].time + 'T00:00:00Z') / 1000;
+  let lo = 0, hi = data.length - 1;
+  if (ts <= t(0)) return data[0];
+  if (ts >= t(hi)) return data[hi];
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (t(m) <= ts) lo = m; else hi = m; }
+  return (ts - t(lo) <= t(hi) - ts) ? data[lo] : data[hi];
+}
+
+function pointAtX(x) {
+  if (!currentChart || !chartSeriesData.length || !chartSeriesData[0].data.length) return null;
+  let ts = null;
+  try { ts = currentChart.timeScale().coordinateToTime(x); } catch (e) { return null; }
+  if (ts == null) return null;
+  const p = nearestPoint(chartSeriesData[0].data, ts);
+  if (!isFinite(p.value)) return null;
+  return { time: p.time, value: p.value, x };
+}
+
+function shortDate(ds, withYear) {
+  const d = new Date(ds + 'T00:00:00Z');
+  return d.toLocaleDateString('en-US', withYear ? { month: 'short', day: 'numeric', year: 'numeric' } : { month: 'short', day: 'numeric' });
+}
+function fmtAbs(v) {
+  const a = Math.abs(v);
+  if (a >= 10000) return v.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  if (a >= 100) return v.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  return v.toFixed(2);
+}
+
+function setMeasureMarkers(points) {
+  const s = chartSeriesData[0] && chartSeriesData[0].series;
+  if (!s) return;
+  try { s.setMarkers(points.map(p => ({ time: p.time, position: 'belowBar', color: '#e8e8e8', shape: 'circle' }))); } catch (e) {}
+}
+function clearMeasureMarkers() {
+  const s = chartSeriesData[0] && chartSeriesData[0].series;
+  if (s) { try { s.setMarkers([]); } catch (e) {} }
+}
+
+function showMeasure(a, b) {
+  const els = ensureMeasureOverlay();
+  const container = document.getElementById('chartContainer');
+  let p1 = a, p2 = b;
+  if (p1.x > p2.x) { const t = p1; p1 = p2; p2 = t; }
+  if (p2.x - p1.x < 10 || p1.value === 0) { hideMeasure(); return; }
+  const diff = p2.value - p1.value;
+  const pct = diff / Math.abs(p1.value) * 100;
+  const up = diff >= 0;
+  const color = up ? '#00c805' : '#ff5000';
+  const sign = up ? '+' : '';
+  els.shade.style.display = 'block';
+  els.shade.style.left = p1.x + 'px';
+  els.shade.style.width = (p2.x - p1.x) + 'px';
+  els.shade.style.background = up ? 'rgba(0,200,5,0.12)' : 'rgba(255,80,0,0.12)';
+  els.lineA.style.display = 'block'; els.lineA.style.left = p1.x + 'px'; els.lineA.style.background = 'rgba(200,200,200,0.6)';
+  els.lineB.style.display = 'block'; els.lineB.style.left = p2.x + 'px'; els.lineB.style.background = 'rgba(200,200,200,0.6)';
+  const y1 = p1.time.slice(0, 4), y2 = p2.time.slice(0, 4);
+  const dates = y1 === y2
+    ? shortDate(p1.time, false) + ' → ' + shortDate(p2.time, false) + ', ' + y2
+    : shortDate(p1.time, true) + ' → ' + shortDate(p2.time, true);
+  const pill = els.pill;
+  pill.style.display = 'block';
+  pill.style.top = '10px';
+  pill.style.background = darkMode ? 'rgba(10,15,13,0.94)' : 'rgba(255,255,255,0.96)';
+  pill.style.border = '1px solid ' + (darkMode ? '#2a3831' : '#e5e7eb');
+  pill.style.borderRadius = '12px';
+  pill.style.padding = '8px 14px';
+  pill.style.textAlign = 'center';
+  pill.style.boxShadow = '0 4px 14px rgba(0,0,0,0.35)';
+  pill.innerHTML = '<div style="font-weight:700;font-size:16px;color:' + color + '">' + sign + pct.toFixed(2) + '%</div>' +
+    '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + sign + fmtAbs(diff) + ' · ' + dates + '</div>';
+  const w = pill.offsetWidth;
+  const cx = (p1.x + p2.x) / 2;
+  const maxLeft = Math.max(8, container.clientWidth - w - 8);
+  pill.style.left = Math.min(Math.max(8, cx - w / 2), maxLeft) + 'px';
+  setMeasureMarkers([p1, p2]);
+}
+
+function hideMeasure() {
+  if (measureTimer) { clearTimeout(measureTimer); measureTimer = null; }
+  if (measureEls) {
+    measureEls.shade.style.display = 'none';
+    measureEls.lineA.style.display = 'none';
+    measureEls.lineB.style.display = 'none';
+    measureEls.pill.style.display = 'none';
+  }
+  clearMeasureMarkers();
+}
+function restartMeasureTimer(ms) {
+  if (measureTimer) clearTimeout(measureTimer);
+  measureTimer = setTimeout(hideMeasure, ms);
+}
+function chartVisible() {
+  return currentChart && !document.getElementById('chartView').classList.contains('hidden');
+}
+
+// touch: quick two-finger tap selects the range (pinch-zoom is left alone)
+(function initTouchMeasure() {
+  const el = document.getElementById('chartContainer');
+  el.addEventListener('touchstart', e => {
+    if (e.touches.length === 2 && chartVisible()) {
+      const r = el.getBoundingClientRect();
+      touchGesture = {
+        t0: Date.now(),
+        x1: e.touches[0].clientX - r.left,
+        x2: e.touches[1].clientX - r.left,
+        d0: Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY)
+      };
+    } else touchGesture = null;
+  }, { capture: true, passive: true });
+  el.addEventListener('touchmove', e => {
+    const g = touchGesture;
+    if (!g || e.touches.length !== 2) return;
+    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    if (Math.abs(d - g.d0) > 28) touchGesture = null; // pinch: hand it back to the chart
+  }, { capture: true, passive: true });
+  const finish = () => {
+    const g = touchGesture;
+    touchGesture = null;
+    if (!g) return;
+    if (Date.now() - g.t0 > 400) return;
+    if (Math.abs(g.x1 - g.x2) < 24) return;
+    const a = pointAtX(g.x1), b = pointAtX(g.x2);
+    if (a && b) { showMeasure(a, b); restartMeasureTimer(3500); }
+  };
+  el.addEventListener('touchend', finish, { capture: true, passive: true });
+  el.addEventListener('touchcancel', () => { touchGesture = null; }, { capture: true, passive: true });
+})();
+
+// mouse: Shift+click two points
+document.getElementById('chartContainer').addEventListener('mousedown', e => {
+  if (!e.shiftKey || !chartVisible()) return;
+  e.preventDefault();
+  const r = e.currentTarget.getBoundingClientRect();
+  const p = pointAtX(e.clientX - r.left);
+  if (!p) return;
+  if (!shiftAnchor) {
+    shiftAnchor = p;
+    setMeasureMarkers([p]);
+    const pill = ensureMeasureOverlay().pill;
+    pill.style.display = 'block';
+    pill.style.top = '10px'; pill.style.left = '10px';
+    pill.style.background = darkMode ? 'rgba(10,15,13,0.94)' : 'rgba(255,255,255,0.96)';
+    pill.style.border = '1px solid ' + (darkMode ? '#2a3831' : '#e5e7eb');
+    pill.style.borderRadius = '12px';
+    pill.style.padding = '8px 14px';
+    pill.style.fontSize = '11px';
+    pill.style.color = '#9ca3af';
+    pill.textContent = 'First point set — Shift+click a second point';
+    restartMeasureTimer(4000);
+  } else {
+    const a = shiftAnchor;
+    shiftAnchor = null;
+    showMeasure(a, p);
+    restartMeasureTimer(5000);
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { hideMeasure(); shiftAnchor = null; }
+});
+
 if (apiKey) loadPopular();
 </script>
 </body>

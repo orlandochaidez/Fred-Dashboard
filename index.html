@@ -516,6 +516,55 @@ async function openChart(items, units = null) {
     }
     currentChart.timeScale().fitContent();
     setRange('5y');
+    
+
+// Two-finger percentage difference (Stocks-style)
+let touchDiffEl = document.getElementById('touchDiff');
+if (!touchDiffEl) {
+  touchDiffEl = document.createElement('div');
+  touchDiffEl.id = 'touchDiff';
+  touchDiffEl.className = 'absolute top-2 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-3 py-1.5 rounded-full font-medium pointer-events-none z-10 hidden';
+  document.getElementById('chartView').appendChild(touchDiffEl);
+}
+
+const container = document.getElementById('chartContainer');
+container.addEventListener('touchstart', handleTwoFinger, { passive: false });
+container.addEventListener('touchmove', handleTwoFinger, { passive: false });
+container.addEventListener('touchend', () => touchDiffEl.classList.add('hidden'), { passive: true });
+
+function handleTwoFinger(e) {
+  if (e.touches.length !== 2 || !currentChart) {
+    touchDiffEl.classList.add('hidden');
+    return;
+  }
+  e.preventDefault();
+
+  const rect = container.getBoundingClientRect();
+  const t1 = e.touches[0];
+  const t2 = e.touches[1];
+
+  const x1 = t1.clientX - rect.left;
+  const x2 = t2.clientX - rect.left;
+
+  const time1 = currentChart.timeScale().coordinateToTime(x1);
+  const time2 = currentChart.timeScale().coordinateToTime(x2);
+
+  if (!time1 || !time2) return;
+
+  // Get the main series (first one)
+  const series = currentChart.series()[0];
+  if (!series) return;
+
+  const price1 = series.coordinateToPrice(t1.clientY - rect.top);
+  const price2 = series.coordinateToPrice(t2.clientY - rect.top);
+
+  if (price1 == null || price2 == null) return;
+
+  const pct = ((price2 - price1) / Math.abs(price1)) * 100;
+  const sign = pct >= 0 ? '+' : '';
+  touchDiffEl.textContent = `${sign}${pct.toFixed(2)}%`;
+  touchDiffEl.classList.remove('hidden');
+}
   } catch (e) {
     container.innerHTML = '<div class="flex items-center justify-center h-full text-red-400 p-4 text-center">Failed to load chart<br><span class="text-xs">' + e.message + '</span></div>';
   }

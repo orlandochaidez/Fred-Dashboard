@@ -525,9 +525,7 @@ function setRange(range) {
   if (!currentChart) return;
   const now = new Date();
   let from;
-  if (range === '1m') from = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-  else if (range === '3m') from = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-  else if (range === '6m') from = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+  if (range === '6m') from = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
   else if (range === '1y') from = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
   else if (range === '5y') from = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
   else if (range === '10y') from = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());

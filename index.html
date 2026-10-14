@@ -95,13 +95,40 @@
     <p id="searchHint" class="text-slate-500 text-center py-10">Search any economic series</p>
   </div>
   <div id="tab-calendar" class="tab-content hidden">
-    <div class="mb-4">
+    <div class="mb-3">
       <h2 class="text-xl font-semibold mb-1">Economic Calendar</h2>
       <p class="text-slate-400 text-sm">Upcoming data releases, auto-updated from FRED</p>
     </div>
-    <div id="calendarList" class="space-y-3"></div>
+    <div class="bg-slate-800/60 rounded-2xl border border-slate-700 p-3 mb-3">
+      <div class="flex items-center justify-between mb-2">
+        <button id="calPrev" class="w-9 h-9 rounded-full bg-slate-700/70 text-lg leading-none active:scale-95">‹</button>
+        <div id="calMonthLabel" class="font-semibold"></div>
+        <button id="calNext" class="w-9 h-9 rounded-full bg-slate-700/70 text-lg leading-none active:scale-95">›</button>
+      </div>
+      <div class="grid grid-cols-7 text-center text-[11px] text-slate-500 font-medium mb-1">
+        <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+      </div>
+      <div id="calGrid" class="grid grid-cols-7 gap-0.5"></div>
+    </div>
+    <div id="calDayLabel" class="font-semibold text-sm mb-2"></div>
+    <div id="calendarList" class="space-y-2"></div>
   </div>
 </main>
+
+<!-- Release detail sheet -->
+<div id="releaseModal" class="hidden fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/70" id="releaseModalBg"></div>
+  <div class="absolute bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 rounded-t-3xl p-5 pb-8 max-h-[75vh] overflow-y-auto">
+    <div class="w-10 h-1 rounded-full bg-slate-600 mx-auto mb-4"></div>
+    <div id="relName" class="text-lg font-bold mb-1 pr-8"></div>
+    <div id="relDate" class="text-xs text-slate-400 mb-3"></div>
+    <p id="relDesc" class="text-sm text-slate-200 leading-relaxed mb-4"></p>
+    <div class="flex gap-2">
+      <a id="relLink" href="#" target="_blank" rel="noopener" class="flex-1 text-center bg-[#00c805] text-black font-semibold text-sm py-2.5 rounded-xl active:scale-[.98]">View on FRED ↗</a>
+      <button id="relClose" class="px-5 py-2.5 rounded-xl bg-slate-700 text-sm font-medium active:scale-[.98]">Close</button>
+    </div>
+  </div>
+</div>
 
 <div id="compareBar" class="hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 p-3 z-40 flex items-center justify-between">
   <div id="compareCount" class="text-sm">0 selected</div>
@@ -382,89 +409,184 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-let calendarCache = { at: 0, html: '' };
-async function fetchReleaseDates() {
-  const fmt = d => d.toISOString().split('T')[0];
-  const start = new Date();
-  const end = new Date(); end.setDate(end.getDate() + 60);
-  const url = `${PROXY}?action=release_dates&realtime_start=${fmt(start)}&realtime_end=${fmt(end)}` +
-    `&order_by=release_date&sort_order=asc&limit=200&include_release_dates_with_no_data=true&api_key=${apiKey}`;
+// ---- Economic calendar: month grid + tappable release details ----
+const RELEASE_INFO = [
+  ['Employment Situation', 'The monthly jobs report: unemployment rate plus how many jobs were added or lost. The single most market-moving release — a big surprise instantly reprices what everyone expects the Fed to do with rates.'],
+  ['Consumer Price Index', 'Monthly inflation on everyday stuff — groceries, gas, rent. Hot CPI means the Fed keeps rates higher for longer; cool CPI opens the door to rate cuts.'],
+  ['Producer Price Index', 'Wholesale inflation — what businesses pay for materials and supplies. It usually shows up in consumer prices a month or two later, so this is an early warning.'],
+  ['Import and Export Price', 'How import and export prices moved — a read on global inflation pressure and dollar strength feeding into the US.'],
+  ['Gross Domestic Product', 'The quarterly scoreboard for the entire US economy — total output growth. Two negative quarters in a row is the classic recession signal.'],
+  ['Personal Income and Outlays', 'How much Americans earned and spent — plus PCE inflation, the Fed’s favorite inflation gauge. The Fed watches this release more closely than CPI.'],
+  ['International Trade', 'The trade deficit or surplus — imports vs exports. Big deficits can drag on the quarter’s GDP math.'],
+  ['New Residential Construction', 'Housing starts and building permits — the freshest read on housing supply and how confident builders feel.'],
+  ['New Residential Sales', 'Sales of newly built homes — demand for new construction and a leading signal for the housing market.'],
+  ['Existing-Home Sales', 'Sales of previously owned homes — the biggest slice of the housing market. Slow sales usually mean high mortgage rates are biting.'],
+  ['Pending Home Sales', 'Homes under contract but not closed yet — a preview of where existing-home sales head next month.'],
+  ['Case-Shiller', 'The benchmark home-price index for 20 major US cities. The cleanest read on whether house prices are rising or falling.'],
+  ['Housing Vacancies', 'Vacancy rates and homeownership — shows how tight or loose the housing market is.'],
+  ['Industrial Production', 'Output from factories, mines, and utilities — a real-time pulse on the goods side of the economy.'],
+  ['Capacity Utilization', 'How much of America’s industrial capacity is actually being used. Very high readings can signal inflation pressure building.'],
+  ['Consumer Credit', 'How much households are borrowing — credit cards, auto loans, student loans. Surging balances can mean strong spending, or stretched consumers.'],
+  ['Employment Cost Index', 'What it costs employers to hire — wages plus benefits. The Fed watches this closely because wage growth feeds straight into inflation.'],
+  ['Job Openings and Labor Turnover', 'JOLTS: open jobs, hires, quits, and layoffs. Lots of openings plus lots of quitting means workers have leverage and wages keep climbing.'],
+  ['Real Earnings', 'Wages adjusted for inflation — whether paychecks are actually gaining purchasing power or losing it.'],
+  ['Productivity and Costs', 'How much workers produce per hour and what it costs. Strong productivity lets wages rise without inflation; weak productivity does the opposite.'],
+  ['Wholesale Trade', 'Sales and inventories at wholesalers — an early read on supply chains and whether shelves are over- or under-stocked.'],
+  ['Retail Trade', 'How much Americans spent at stores and restaurants. Consumer spending is about 70% of the economy, so this moves markets.'],
+  ['Manufacturers’ Shipments', 'Factory orders, shipments, and inventories — the pipeline for industrial activity in the coming months.'],
+  ['Durable Goods', 'Orders for big-ticket items built to last years — planes, machines, appliances. People and businesses only buy these when they feel confident.'],
+  ['Construction Spending', 'Total dollars going into construction — residential, commercial, and public projects.'],
+  ['Treasury Statement', 'The federal government’s monthly income statement — tax receipts vs spending, and how fast the deficit is growing.'],
+  ['Beige Book', 'The Fed’s anecdotal report from businesses across all 12 districts — the stories behind the numbers, published ahead of FOMC meetings.'],
+  ['FOMC', 'Federal Open Market Committee — the Fed’s rate decision plus its economic projections. The most watched event in markets, period.'],
+  ['Money Stock', 'How much money is sloshing around the economy (M1/M2). Rapid growth can foreshadow inflation; shrinking can signal tightening.'],
+  ['Reserve Balances', 'The Fed’s balance sheet — mostly the bonds it holds. Shrinking means quantitative tightening, which drains liquidity from markets.'],
+  ['Senior Loan Officer', 'Survey of banks on lending standards. Tightening standards mean harder-to-get loans, which slows growth ahead.'],
+  ['Unemployment Insurance Weekly Claims', 'Weekly layoff filings — the fastest real-time read on the job market. Spikes here show up well before the monthly jobs report.'],
+  ['State Employment and Unemployment', 'Unemployment rates for every state — shows which parts of the country are hot and which are hurting.'],
+  ['Consumer Sentiment', 'How everyday people feel about the economy and their finances. Gloomy consumers spend less, which slows everything down.'],
+  ['Consumer Confidence', 'Confidence surveys that predict spending — falling confidence often shows up in retail sales a month or two later.'],
+  ['E-Commerce', 'Online retail sales — tracks the shift to e-commerce and overall consumer strength.'],
+  ['International Investment Position', 'What the US owns abroad vs what foreigners own here — the country’s net worth to the rest of the world.'],
+  ['Corporate Profits', 'Total profits of US companies — the fuel for hiring, investment, and stock prices.'],
+  ['GDP by State', 'Which states are growing fastest or shrinking — the regional breakdown of the economy.'],
+  ['Farm Prices', 'Prices farmers get for crops and livestock — early input costs that eventually reach grocery shelves.'],
+  ['Quarterly Services Survey', 'Revenue across the services sector. Services are most of the economy, so this fills a big blind spot.'],
+];
+function releaseInfo(name) {
+  const n = (name || '').toLowerCase();
+  for (const [kw, desc] of RELEASE_INFO) {
+    if (n.includes(kw.toLowerCase())) return desc;
+  }
+  return 'A scheduled economic data release. Tap “View on FRED” below for the full details, the source, and related data series.';
+}
+
+let calCursor = new Date(); calCursor.setDate(1);
+let calSelected = new Date().toISOString().split('T')[0];
+let calMonthCache = {};
+
+async function fetchReleaseMonth(y, m) {
+  const key = y + '-' + String(m + 1).padStart(2, '0');
+  if (calMonthCache[key]) return calMonthCache[key];
+  const lastDay = new Date(y, m + 1, 0).getDate();
+  const url = `${PROXY}?action=release_dates&realtime_start=${key}-01&realtime_end=${key}-${String(lastDay).padStart(2, '0')}` +
+    `&order_by=release_date&sort_order=asc&limit=500&include_release_dates_with_no_data=true&api_key=${apiKey}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('Status ' + res.status);
   const data = await res.json();
-  return data.release_dates || [];
-}
-function renderReleaseCalendar(dates) {
-  const list = document.getElementById('calendarList');
+  const byDay = {};
   const seen = new Set();
-  const uniq = (dates || []).filter(r => {
+  (data.release_dates || []).forEach(r => {
     const k = r.release_id + '|' + r.date;
-    if (seen.has(k) || !r.date || !r.release_name) return false;
+    if (seen.has(k) || !r.date || !r.release_name) return;
     seen.add(k);
-    return true;
+    (byDay[r.date] = byDay[r.date] || []).push(r);
   });
-  if (!uniq.length) {
-    list.innerHTML = '<div class="text-slate-400 text-center py-10">No upcoming releases in the next 60 days.<br><span class="text-xs">Tap the tab again to retry.</span></div>';
+  calMonthCache[key] = byDay;
+  return byDay;
+}
+
+function renderCalGrid(byDay) {
+  const grid = document.getElementById('calGrid');
+  const y = calCursor.getFullYear(), m = calCursor.getMonth();
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  document.getElementById('calMonthLabel').textContent = monthNames[m] + ' ' + y;
+  const firstDow = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const todayStr = new Date().toISOString().split('T')[0];
+  let html = '';
+  for (let i = 0; i < 42; i++) {
+    const dayNum = i - firstDow + 1;
+    let yy = y, mm = m, dd = dayNum, other = false;
+    if (dayNum < 1) { other = true; mm = m - 1; if (mm < 0) { mm = 11; yy = y - 1; } dd = new Date(yy, mm + 1, 0).getDate() + dayNum; }
+    else if (dayNum > daysInMonth) { other = true; mm = m + 1; if (mm > 11) { mm = 0; yy = y + 1; } dd = dayNum - daysInMonth; }
+    const ds = yy + '-' + String(mm + 1).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
+    const evts = other ? [] : (byDay[ds] || []);
+    const isToday = ds === todayStr;
+    const isSel = !other && ds === calSelected;
+    const dotColor = isSel ? 'bg-black' : 'bg-[#00c805]';
+    const dotsHtml = evts.slice(0, 3).map(() => `<div class="w-1 h-1 rounded-full ${dotColor}"></div>`).join('');
+    html += `<button data-day="${ds}" ${other ? 'disabled' : ''} class="flex flex-col items-center justify-center h-10 rounded-lg text-[13px] active:scale-95 ` +
+      (other ? 'text-slate-700' : isSel ? 'bg-[#00c805] text-black font-bold' : isToday ? 'text-[#00c805] font-bold' : 'text-slate-200') + '">' +
+      `<span>${dd}</span><span class="flex gap-0.5 h-1 mt-0.5">${dotsHtml}</span></button>`;
+  }
+  grid.innerHTML = html;
+  grid.querySelectorAll('button[data-day]:not([disabled])').forEach(b => {
+    b.onclick = () => { calSelected = b.dataset.day; renderCalGrid(byDay); renderCalDay(byDay); };
+  });
+}
+
+function renderCalDay(byDay) {
+  const list = document.getElementById('calendarList');
+  const d = new Date(calSelected + 'T00:00:00');
+  document.getElementById('calDayLabel').textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const evts = (byDay && byDay[calSelected]) || [];
+  if (!evts.length) {
+    list.innerHTML = '<div class="text-slate-500 text-sm text-center py-6">No releases this day.</div>';
     return;
   }
-  const groups = {};
-  uniq.forEach(r => { (groups[r.date] = groups[r.date] || []).push(r); });
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayMs = new Date(todayStr + 'T00:00:00').getTime();
   list.innerHTML = '';
-  Object.keys(groups).sort().forEach(ds => {
-    const diffDays = Math.round((new Date(ds + 'T00:00:00').getTime() - todayMs) / 86400000);
-    const badge = diffDays <= 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : `in ${diffDays}d`;
-    const badgeCls = diffDays <= 0 ? 'bg-[#00c805] text-black' : 'bg-slate-700 text-slate-200';
-    const dayLabel = new Date(ds + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-    const section = document.createElement('div');
-    section.innerHTML =
-      `<div class="flex items-center justify-between mb-1.5"><div class="font-semibold text-sm">${dayLabel}</div>` +
-      `<div class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${badgeCls}">${badge}</div></div>` +
-      groups[ds].map(r => `<div class="bg-slate-800/60 rounded-xl px-3 py-2.5 border border-slate-700 text-sm mb-1.5">${escapeHtml(r.release_name)}</div>`).join('');
-    list.appendChild(section);
-  });
-}
-async function loadLegacyCalendar() {
-  // Fallback if the worker doesn't have the release_dates action yet.
-  const list = document.getElementById('calendarList');
-  const metas = await Promise.all(POPULAR.slice(0, 8).map(p =>
-    fetchSeriesMeta(p.id).then(meta => meta ? { ...p, last: meta.last_updated, end: meta.observation_end, freq: meta.frequency } : null).catch(() => null)
-  ));
-  const items = metas.filter(Boolean).sort((a, b) => (b.last || '').localeCompare(a.last || ''));
-  if (!items.length) throw new Error('empty');
-  list.innerHTML = '<div class="text-xs text-slate-500 text-center mb-2">Recently updated series</div>';
-  items.forEach(it => {
+  evts.forEach(r => {
     const div = document.createElement('div');
-    div.className = 'bg-slate-800/60 rounded-xl p-3 border border-slate-700 text-sm';
-    const last = (it.last || '').split(' ')[0] || '—';
-    div.innerHTML = `<div class="font-medium">${escapeHtml(it.name)}</div><div class="text-xs text-slate-400 mt-1">Last updated: ${last}<br>Observation end: ${it.end || '—'} • ${it.freq || ''}</div>`;
+    div.className = 'bg-slate-800/60 rounded-xl px-3 py-2.5 border border-slate-700 text-sm active:scale-[.99] cursor-pointer flex items-center justify-between gap-2';
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = r.release_name;
+    const chev = document.createElement('span');
+    chev.className = 'text-slate-500 text-lg leading-none shrink-0';
+    chev.textContent = '›';
+    div.appendChild(nameSpan);
+    div.appendChild(chev);
+    div.onclick = () => openRelease(r);
     list.appendChild(div);
   });
 }
-async function loadCalendar() {
-  const list = document.getElementById('calendarList');
+
+function openRelease(r) {
+  document.getElementById('relName').textContent = r.release_name;
+  document.getElementById('relDate').textContent = new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('relDesc').textContent = releaseInfo(r.release_name);
+  document.getElementById('relLink').href = 'https://fred.stlouisfed.org/release?rid=' + r.release_id;
+  document.getElementById('releaseModal').classList.remove('hidden');
+}
+function closeRelease() { document.getElementById('releaseModal').classList.add('hidden'); }
+
+async function loadCalendarMonth() {
+  const grid = document.getElementById('calGrid');
   if (!apiKey) {
-    list.innerHTML = '<div class="text-slate-400 text-center py-10">Add your FRED API key to load the calendar.</div>';
+    document.getElementById('calMonthLabel').textContent = '';
+    grid.innerHTML = '<div class="col-span-7 text-slate-400 text-center text-sm py-8">Add your FRED API key to load the calendar.</div>';
+    document.getElementById('calDayLabel').textContent = '';
+    document.getElementById('calendarList').innerHTML = '';
     return;
   }
-  if (calendarCache.html && Date.now() - calendarCache.at < 30 * 60 * 1000) {
-    list.innerHTML = calendarCache.html;
-    return;
-  }
-  list.innerHTML = '<div class="text-slate-400 text-center py-10">Loading upcoming releases…</div>';
-  try {
-    renderReleaseCalendar(await fetchReleaseDates());
-    calendarCache = { at: Date.now(), html: list.innerHTML };
-  } catch (e) {
+  const y = calCursor.getFullYear(), m = calCursor.getMonth();
+  const key = y + '-' + String(m + 1).padStart(2, '0');
+  if (!calMonthCache[key]) {
+    document.getElementById('calMonthLabel').textContent = '';
+    grid.innerHTML = '<div class="col-span-7 text-slate-400 text-center text-sm py-8">Loading…</div>';
     try {
-      await loadLegacyCalendar();
-      calendarCache = { at: Date.now(), html: list.innerHTML };
-    } catch (e2) {
-      list.innerHTML = '<div class="text-red-400 text-center py-10">Couldn\'t load the calendar.<br><span class="text-xs text-slate-400">Tap the tab again to retry.</span></div>';
+      await fetchReleaseMonth(y, m);
+    } catch (e) {
+      grid.innerHTML = '';
+      document.getElementById('calDayLabel').textContent = '';
+      document.getElementById('calendarList').innerHTML = '<div class="text-red-400 text-center text-sm py-10">Couldn\'t load the calendar.<br><span class="text-xs text-slate-400">Tap the tab again to retry.</span></div>';
+      return;
     }
   }
+  const selD = new Date(calSelected + 'T00:00:00');
+  if (selD.getFullYear() !== y || selD.getMonth() !== m) {
+    const td = new Date();
+    calSelected = (td.getFullYear() === y && td.getMonth() === m) ? td.toISOString().split('T')[0] : key + '-01';
+  }
+  const byDay = calMonthCache[key];
+  renderCalGrid(byDay);
+  renderCalDay(byDay);
 }
+async function loadCalendar() { await loadCalendarMonth(); }
+document.getElementById('calPrev').onclick = () => { calCursor.setMonth(calCursor.getMonth() - 1); loadCalendarMonth(); };
+document.getElementById('calNext').onclick = () => { calCursor.setMonth(calCursor.getMonth() + 1); loadCalendarMonth(); };
+document.getElementById('relClose').onclick = closeRelease;
+document.getElementById('releaseModalBg').onclick = closeRelease;
 async function openChart(items, units = null) {
   currentItems = items;
   currentUnits = units || items[0].units || 'lin';

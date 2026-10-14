@@ -529,10 +529,19 @@ function nearestPoint(data, ts) {
   return (ts - t(lo) <= t(hi) - ts) ? data[lo] : data[hi];
 }
 
+function coordTimeToSeconds(t) {
+  // coordinateToTime returns the series' original time value: a UTCTimestamp
+  // number, or the 'YYYY-MM-DD' string we passed in setData. Normalize to seconds.
+  if (t == null) return null;
+  if (typeof t === 'number') return t;
+  const ms = Date.parse(t.length === 10 ? t + 'T00:00:00Z' : t);
+  return isFinite(ms) ? ms / 1000 : null;
+}
+
 function pointAtX(x) {
   if (!currentChart || !chartSeriesData.length || !chartSeriesData[0].data.length) return null;
   let ts = null;
-  try { ts = currentChart.timeScale().coordinateToTime(x); } catch (e) { return null; }
+  try { ts = coordTimeToSeconds(currentChart.timeScale().coordinateToTime(x)); } catch (e) { return null; }
   if (ts == null) return null;
   const p = nearestPoint(chartSeriesData[0].data, ts);
   if (!isFinite(p.value)) return null;

@@ -8,19 +8,74 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
   .card { transition: all 0.2s ease; }
   .card:active { transform: scale(0.98); }
   .sparkline { width: 100%; height: 36px; }
-  .tab-active { background: #1e40af; color: white; }
-  .positive { color: #22c55e; }
-  .negative { color: #ef4444; }
+  .tab-active { background: #10b981; color: #fff; }
+  .positive { color: #10b981; }
+  .negative { color: #f43f5e; }
   .neutral { color: #94a3b8; }
   .starred { color: #fbbf24; }
   input, button, select { -webkit-tap-highlight-color: transparent; }
-  .unit-btn.active { background: #3b82f6; color: white; }
+  .unit-btn.active { background: #10b981; color: white; }
   #chartContainer { height: 420px; width: 100%; touch-action: none; }
   .range-btn, .unit-btn { touch-action: manipulation; }
+
+  /* Light mode */
+  body.light {
+    background: #f0fdf4;
+    color: #14532d;
+  }
+  body.light header {
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+  }
+  body.light .bg-slate-900,
+  body.light .bg-slate-800,
+  body.light .bg-slate-800\/80,
+  body.light .bg-slate-800\/60 {
+    background: #ffffff !important;
+    border-color: #d1fae5 !important;
+    color: #14532d;
+  }
+  body.light .text-slate-400,
+  body.light .text-slate-500 {
+    color: #4ade80 !important;
+  }
+  body.light h1, body.light h2, body.light h3 {
+    color: #166534;
+  }
+  body.light .tab-active {
+    background: #10b981;
+    color: white;
+  }
+
+  /* Dark / Neon mode */
+  body.dark {
+    background: #020617;
+    color: #e2e8f0;
+  }
+  body.dark header {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+  body.dark h1 {
+    color: #4ade80;
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+  }
+  body.dark .tab-active {
+    background: #22c55e;
+    color: #052e16;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+  }
+  body.dark .positive { color: #4ade80; }
+  body.dark .negative { color: #fb7185; }
+  body.dark .range-btn.bg-blue-600,
+  body.dark .unit-btn.active {
+    background: #22c55e !important;
+    color: #052e16 !important;
+  }
 </style>
 </head>
 <body class="min-h-screen">
@@ -178,12 +233,11 @@ let darkMode = localStorage.getItem('fred_dark') !== 'false';
 const PROXY = 'https://fred-proxy.orlandochaidez.workers.dev/?url=';
 
 function applyTheme() {
-  document.body.className = darkMode ? 'min-h-screen bg-slate-950 text-slate-100' : 'min-h-screen bg-slate-50 text-slate-900';
+  document.body.className = darkMode
+    ? 'dark min-h-screen'
+    : 'light min-h-screen';
   document.getElementById('themeToggle').textContent = darkMode ? '🌙' : '☀️';
 }
-applyTheme();
-document.getElementById('themeToggle').onclick = () => { darkMode = !darkMode; localStorage.setItem('fred_dark', darkMode); applyTheme(); };
-
 document.querySelectorAll('.tab').forEach(tab => {
   tab.onclick = () => {
     document.querySelectorAll('.tab').forEach(t => { t.classList.remove('tab-active'); t.classList.add('text-slate-400'); });

@@ -52,13 +52,13 @@
   </div>
   <div class="flex gap-2">
     <button id="compareToggle" class="text-xs px-2 py-1 rounded-lg bg-slate-800 text-slate-300">Compare</button>
-    <button id="themeToggle" class="text-slate-400 hover:text-white text-sm px-2 py-1 rounded-lg bg-slate-800">ð</button>
+    <button id="themeToggle" class="text-slate-400 hover:text-white text-sm px-2 py-1 rounded-lg bg-slate-800">🌙</button>
     <button id="settingsBtn" class="text-slate-400 hover:text-white text-sm px-3 py-1 rounded-lg bg-slate-800">API Key</button>
   </div>
 </header>
 
 <div class="bg-slate-800/50 text-xs text-slate-400 px-4 py-2 text-center border-b border-slate-700">
-  Unofficial client. Not affiliated with or endorsed by the Federal Reserve Bank of St. Louis. Data from FREDÂ®.
+  Unofficial client. Not affiliated with or endorsed by the Federal Reserve Bank of St. Louis. Data from FRED®.
 </div>
 
 <div class="flex border-b border-slate-700 bg-slate-900 sticky top-[57px] z-40 overflow-x-auto">
@@ -113,13 +113,13 @@
 
 <div id="chartView" class="hidden fixed inset-0 bg-slate-950 z-50 flex flex-col">
   <div class="flex items-center justify-between p-3 border-b border-slate-700 bg-slate-900">
-    <button id="backBtn" class="text-[#00c805] font-medium text-sm">â Back</button>
+    <button id="backBtn" class="text-[#00c805] font-medium text-sm">← Back</button>
     <div class="text-center flex-1 min-w-0">
       <div id="chartTitle" class="font-semibold truncate text-sm"></div>
       <div id="chartSubtitle" class="text-xs text-slate-400 truncate"></div>
     </div>
     <div class="flex gap-1">
-      <button id="chartStar" class="text-xl">â</button>
+      <button id="chartStar" class="text-xl">☆</button>
       <button id="addToListBtn" class="text-xs px-2 py-1 bg-slate-800 rounded">+ List</button>
     </div>
   </div>
@@ -188,7 +188,7 @@ const PROXY = 'https://fred-proxy.orlandochaidez.workers.dev/';
 
 function applyTheme() {
   document.body.className = darkMode ? 'dark min-h-screen' : 'light min-h-screen';
-  document.getElementById('themeToggle').textContent = darkMode ? 'ð' : 'âï¸';
+  document.getElementById('themeToggle').textContent = darkMode ? '🌙' : '☀️';
 }
 applyTheme();
 document.getElementById('themeToggle').onclick = () => { darkMode = !darkMode; localStorage.setItem('fred_dark', darkMode); applyTheme(); };
@@ -289,7 +289,7 @@ async function fetchSeriesMeta(seriesId) {
 }
 
 function formatValue(val) {
-  if (val == null || isNaN(val)) return 'â';
+  if (val == null || isNaN(val)) return '—';
   return (Math.abs(val) < 100 ? val.toFixed(2) + '%' : val.toLocaleString(undefined, { maximumFractionDigits: 1 }));
 }
 function makeSparkline(points) {
@@ -307,7 +307,7 @@ function createCard(item, container) {
   const card = document.createElement('div');
   card.className = 'card bg-slate-800/80 rounded-2xl p-4 border border-slate-700 cursor-pointer relative';
   card.dataset.id = item.id;
-  card.innerHTML = `<div class="flex justify-between items-start"><div class="text-sm text-slate-400 pr-8">${item.name}</div><button class="star-btn text-lg absolute top-3 right-3" data-id="${item.id}">â</button></div><div class="text-2xl font-semibold mt-1" id="val-${item.id}">...</div><div class="text-xs mt-0.5" id="chg-${item.id}">Loading</div><div id="spark-${item.id}" class="mt-1"></div><div class="text-[10px] text-slate-500 mt-1" id="meta-${item.id}"></div>`;
+  card.innerHTML = `<div class="flex justify-between items-start"><div class="text-sm text-slate-400 pr-8">${item.name}</div><button class="star-btn text-lg absolute top-3 right-3" data-id="${item.id}">☆</button></div><div class="text-2xl font-semibold mt-1" id="val-${item.id}">...</div><div class="text-xs mt-0.5" id="chg-${item.id}">Loading</div><div id="spark-${item.id}" class="mt-1"></div><div class="text-[10px] text-slate-500 mt-1" id="meta-${item.id}"></div>`;
   card.onclick = (e) => {
     if (e.target.closest('.star-btn')) return;
     if (compareMode) {
@@ -329,7 +329,7 @@ function toggleFav(item) {
 function updateStars() {
   document.querySelectorAll('.star-btn').forEach(btn => {
     const isF = (watchlists['Favorites'] || []).some(f => f.id === btn.dataset.id);
-    btn.textContent = isF ? 'â' : 'â';
+    btn.textContent = isF ? '★' : '☆';
     btn.classList.toggle('starred', isF);
   });
 }
@@ -350,12 +350,12 @@ async function populateCard(item) {
         const prev = parseFloat(obs[obs.length - 2].value);
         const diff = v - prev;
         const sign = diff > 0 ? '+' : '';
-        chgEl.textContent = `${sign}${diff.toFixed(2)} â¢ ${latest.date}`;
+        chgEl.textContent = `${sign}${diff.toFixed(2)} • ${latest.date}`;
         chgEl.className = 'text-xs mt-0.5 ' + (diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral');
       }
       if (sparkEl) sparkEl.innerHTML = makeSparkline(obs);
     }
-    if (meta && metaEl) metaEl.textContent = `Updated: ${meta.last_updated?.split(' ')[0] || 'â'}`;
+    if (meta && metaEl) metaEl.textContent = `Updated: ${meta.last_updated?.split(' ')[0] || '—'}`;
   } catch (e) {}
 }
 async function loadPopular() {
@@ -390,7 +390,7 @@ async function loadCalendar() {
   items.forEach(it => {
     const div = document.createElement('div');
     div.className = 'bg-slate-800/60 rounded-xl p-3 border border-slate-700 text-sm';
-    div.innerHTML = `<div class="font-medium">${it.name}</div><div class="text-xs text-slate-400 mt-1">Last updated: ${it.last?.split('T')[0] || it.last || 'â'}<br>Observation end: ${it.end || 'â'} â¢ ${it.freq}</div>`;
+    div.innerHTML = `<div class="font-medium">${it.name}</div><div class="text-xs text-slate-400 mt-1">Last updated: ${it.last?.split('T')[0] || it.last || '—'}<br>Observation end: ${it.end || '—'} • ${it.freq}</div>`;
     list.appendChild(div);
   });
 }
